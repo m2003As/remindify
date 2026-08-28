@@ -15,6 +15,12 @@ export function initDb() {
       notes TEXT
     );
   `);
+
+    const row = db.getFirstSync<{ user_version: number }>("PRAGMA user_version;");
+    if ((row?.user_version ?? 0) < 1) {
+        db.execSync("ALTER TABLE reminders ADD COLUMN icon TEXT;");
+        db.execSync("PRAGMA user_version = 1;");
+    }
 }
 
 export function getReminders(): Reminder[] {
@@ -27,17 +33,17 @@ export function getReminderById(id: string): Reminder | null {
 
 export function addReminder(r: Reminder) {
     db.runSync(
-        `INSERT INTO reminders (id, name, type, date, notifyDaysBefore, photoUri, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?);`,
-        [r.id, r.name, r.type, r.date, r.notifyDaysBefore, r.photoUri ?? null, r.notes ?? null]
+        `INSERT INTO reminders (id, name, type, icon, date, notifyDaysBefore, photoUri, notes)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        [r.id, r.name, r.type, r.icon ?? null, r.date, r.notifyDaysBefore, r.photoUri ?? null, r.notes ?? null]
     );
 }
 
 export function updateReminder(r: Reminder) {
     db.runSync(
-        `UPDATE reminders SET name=?, type=?, date=?, notifyDaysBefore=?, photoUri=?, notes=?
+        `UPDATE reminders SET name=?, type=?, icon=?, date=?, notifyDaysBefore=?, photoUri=?, notes=?
      WHERE id=?;`,
-        [r.name, r.type, r.date, r.notifyDaysBefore, r.photoUri ?? null, r.notes ?? null, r.id]
+        [r.name, r.type, r.icon ?? null, r.date, r.notifyDaysBefore, r.photoUri ?? null, r.notes ?? null, r.id]
     );
 }
 

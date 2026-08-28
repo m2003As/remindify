@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getReminderById, deleteReminder } from "../../lib/db";
 import { cancelReminderNotification } from "../../lib/notifications";
 import { Reminder } from "../../lib/types";
-import { daysUntilNext, daysLabel, formatDateDisplay, ageTurning, typeIcon, typeLabel } from "../../lib/dateUtils";
+import { daysUntilNext, daysLabel, formatDateDisplay, ageTurning, iconFor, labelFor } from "../../lib/dateUtils";
 
 export default function Detail() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,15 +35,20 @@ export default function Detail() {
     return (
         <View style={{ flex: 1, backgroundColor: "#121212", padding: 24, alignItems: "center" }}>
             {currentReminder.photoUri ? (
-                <Image source={{ uri: currentReminder.photoUri }} style={{ width: 160, height: 160, borderRadius: 80, marginTop: 20, marginBottom: 20, borderWidth: 3, borderColor: "#f2a900" }} />
+                <Image
+                    source={{ uri: currentReminder.photoUri }}
+                    style={{ width: 160, height: 160, borderRadius: 80, marginTop: 20, marginBottom: 20, borderWidth: 3, borderColor: "#f2a900" }}
+                />
             ) : (
                 <View style={{ width: 160, height: 160, borderRadius: 80, marginTop: 20, marginBottom: 20, backgroundColor: "#1e1e1e", alignItems: "center", justifyContent: "center" }}>
-                    <Text style={{ fontSize: 56 }}>{typeIcon[currentReminder.type]}</Text>
+                    <Text style={{ fontSize: 56 }}>{iconFor(currentReminder)}</Text>
                 </View>
             )}
 
             <Text style={{ color: "#fff", fontSize: 26, fontWeight: "800" }}>{currentReminder.name}</Text>
-            <Text style={{ color: "#888", fontSize: 15, marginTop: 4 }}>{typeIcon[currentReminder.type]} {typeLabel[currentReminder.type]}</Text>
+            <Text style={{ color: "#888", fontSize: 15, marginTop: 4 }}>
+                {iconFor(currentReminder)} {labelFor(currentReminder)}
+            </Text>
 
             <View style={{ backgroundColor: "#1a1a1a", borderRadius: 20, padding: 20, width: "100%", marginTop: 28, gap: 14 }}>
                 <Row label="Dato" value={formatDateDisplay(currentReminder.date)} />

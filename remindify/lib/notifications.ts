@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { Reminder } from "./types";
+import { parseLocalDate, iconFor, labelFor } from "./dateUtils";
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -16,21 +17,23 @@ export async function requestNotificationPermission() {
     return status === "granted";
 }
 
+function notificationBody(reminder: Reminder): string {
+    if (reminder.type === "birthday") return "Bursdag nærmer seg! 🎂";
+    if (reminder.type === "anniversary") return "Jubileum nærmer seg! 💍";
+    if (reminder.type === "custom") return "En spesiell dag nærmer seg! ⭐";
+    return `${labelFor(reminder)} nærmer seg! ${iconFor(reminder)}`;
+}
+
 export async function scheduleYearlyReminder(reminder: Reminder) {
-    const d = new Date(reminder.date);
+    const d = parseLocalDate(reminder.date);
     const month = d.getMonth() + 1; // Date er 0-indeksert
     const day = d.getDate();
 
     await Notifications.scheduleNotificationAsync({
         identifier: reminder.id,
         content: {
-            title: `${reminder.name}`,
-            body:
-                reminder.type === "birthday"
-                    ? "Bursdag nærmer seg! 🎂"
-                    : reminder.type === "anniversary"
-                        ? "Jubileum nærmer seg! 💍"
-                        : "En spesiell dag nærmer seg! ⭐",
+            title: reminder.name,
+            body: notificationBody(reminder),
         },
         trigger: {
             type: Notifications.SchedulableTriggerInputTypes.CALENDAR,

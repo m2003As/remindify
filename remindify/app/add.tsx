@@ -9,15 +9,19 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { addReminder } from "../lib/db";
 import { requestNotificationPermission, scheduleYearlyReminder } from "../lib/notifications";
-import { Reminder, ReminderType } from "../lib/types";
-import { typeIcon, typeLabel, formatDateDisplay, toLocalDateString } from "../lib/dateUtils";
-
-const TYPES: ReminderType[] = ["birthday", "anniversary", "custom"];
+import { Reminder } from "../lib/types";
+import {
+    formatDateDisplay, toLocalDateString,
+    PRESET_TYPES, EMOJI_CHOICES,
+} from "../lib/dateUtils";
 
 export default function AddReminder() {
     const router = useRouter();
     const [name, setName] = useState("");
-    const [type, setType] = useState<ReminderType>("birthday");
+    const [type, setType] = useState("birthday");
+    const [icon, setIcon] = useState("⭐");
+    const [customLabel, setCustomLabel] = useState("");
+    const [customMode, setCustomMode] = useState(false);
     const [date, setDate] = useState(new Date(2000, 0, 1));
     const [showPicker, setShowPicker] = useState(false);
     const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -48,10 +52,16 @@ export default function AddReminder() {
             Alert.alert("Navn mangler", "Skriv inn et navn før du lagrer.");
             return;
         }
+        if (customMode && !customLabel.trim()) {
+            Alert.alert("Type mangler", "Gi den egendefinerte typen et navn.");
+            return;
+        }
+
         const reminder: Reminder = {
             id: Date.now().toString(),
             name: name.trim(),
-            type,
+            type: customMode ? customLabel.trim() : type,
+            icon: customMode ? icon : null,
             date: toLocalDateString(date),
             notifyDaysBefore: 0,
             photoUri,
@@ -100,28 +110,56 @@ export default function AddReminder() {
 
             {/* Type */}
             <Text style={styles.label}>Type</Text>
-            <View style={{ flexDirection: "row", gap: 10, marginBottom: 20 }}>
-                {TYPES.map((t) => (
-                    <Pressable
-                        key={t}
-                        onPress={() => setType(t)}
-                        style={[styles.pill, type === t && styles.pillActive]}
-                    >
-                        <Text style={{ fontSize: 16 }}>{typeIcon[t]}</Text>
-                        <Text style={[styles.pillText, type === t && styles.pillTextActive]}>
-                            {typeLabel[t]}
-                        </Text>
-                    </Pressable>
-                ))}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
+                {PRESET_TYPES.map((p) => {
+                    const active = !customMode && type === p.type;
+                    return (
+                        <Pressable
+                            key={p.type}
+                            onPress={() => { setType(p.type); setCustomMode(false); }}
+                            style={[styles.pill, active && styles.pillActive]}
+                        >
+                            <Text style={{ fontSize: 16 }}>{p.icon}</Text>
+                            <Text style={[styles.pillText, active && styles.pillTextActive]}>{p.label}</Text>
+                        </Pressable>
+                    );
+                })}
+                <Pressable
+                    onPress={() => setCustomMode(true)}
+                    style={[styles.pill, customMode && styles.pillActive]}
+                >
+                    <Text style={{ fontSize: 16 }}>➕</Text>
+                    <Text style={[styles.pillText, customMode && styles.pillTextActive]}>Egen</Text>
+                </Pressable>
             </View>
+
+            {customMode && (
+                <View style={{ marginBottom: 20 }}>
+                    <TextInput
+                        placeholder="F.eks. Eksamen, Flyttedag, Førerkort"
+                        placeholderTextColor="#6b6b6b"
+                        value={customLabel}
+                        onChangeText={setCustomLabel}
+                        style={[styles.input, { marginBottom: 12 }]}
+                    />
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {EMOJI_CHOICES.map((e) => (
+                            <Pressable
+                                key={e}
+                                onPress={() => setIcon(e)}
+                                style={[styles.emojiTile, icon === e && styles.emojiTileActive]}
+                            >
+                                <Text style={{ fontSize: 22 }}>{e}</Text>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
+                </View>
+            )}
 
             {/* Dato */}
             <Text style={styles.label}>Dato</Text>
-            <Pressable style={styles.dateButton} onPress={() => {
-                console.log("Dato-knapp trykket");
-                setShowPicker(true);
-            }}>
-                <Text style={styles.dateButtonText}>{formatDateDisplay(date.toISOString())}</Text>
+            <Pressable style={styles.dateButton} onPress={() => setShowPicker(true)}>
+                <Text style={styles.dateButtonText}>{formatDateDisplay(toLocalDateString(date))}</Text>
                 <Text style={{ fontSize: 16 }}>📅</Text>
             </Pressable>
 
@@ -135,7 +173,7 @@ export default function AddReminder() {
                         locale="nb-NO"
                         style={{ width: "100%", height: 320 }}
                         onChange={(event, selectedDate) => {
-                            if (selectedDate) setDate(selectedDate);
+                            if (selectedDate instanceof Date) setDate(selectedDate);
                         }}
                     />
                 </View>
@@ -154,6 +192,7 @@ export default function AddReminder() {
         </ScrollView>
     );
 }
+
 const styles = {
     container: { flex: 1, backgroundColor: "#121212" } as const,
     avatarLarge: { width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: "#f2a900" } as const,
@@ -174,6 +213,12 @@ const styles = {
     pillActive: { backgroundColor: "#f2a90022", borderColor: "#f2a900" } as const,
     pillText: { color: "#aaa", fontSize: 13, fontWeight: "600" } as const,
     pillTextActive: { color: "#f2a900" } as const,
+    emojiTile: {
+        width: 48, height: 48, borderRadius: 14, marginRight: 8,
+        alignItems: "center", justifyContent: "center",
+        backgroundColor: "#1e1e1e", borderWidth: 1, borderColor: "#2a2a2a",
+    } as const,
+    emojiTileActive: { backgroundColor: "#f2a90022", borderColor: "#f2a900" } as const,
     dateButton: {
         flexDirection: "row", justifyContent: "space-between", alignItems: "center",
         backgroundColor: "#1e1e1e", padding: 16, borderRadius: 14, marginBottom: 12,

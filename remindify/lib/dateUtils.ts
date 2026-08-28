@@ -62,3 +62,19 @@ export const typeLabel: Record<string, string> = {
     anniversary: "Jubileum",
     custom: "Merkedag",
 };
+
+export const PRESET_TYPES = [
+    { type: "birthday", label: "Bursdag", icon: "🎂" },
+    { type: "anniversary", label: "Jubileum", icon: "💍" },
+    { type: "custom", label: "Merkedag", icon: "⭐" },
+];
+
+export const EMOJI_CHOICES = ["⭐", "🎓", "🏡", "✈️", "🐾", "💼", "❤️", "🎸", "🏆", "🕯️"];
+
+export function iconFor(r: { type: string; icon?: string | null }): string {
+    return r.icon || typeIcon[r.type] || "⭐";
+}
+
+export function labelFor(r: { type: string }): string {
+    return typeLabel[r.type] ?? r.type;
+}

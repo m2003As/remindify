@@ -1,10 +1,11 @@
-export type ReminderType = "birthday" | "anniversary" | "custom";
+export type ReminderType = string; // beholdt så gamle importer virker
 
 export type Reminder = {
     id: string;
     name: string;
-    type: ReminderType;
-    date: string;          // full ISO-dato, f.eks. "1995-06-14"
+    type: string;          // "birthday", "anniversary" eller egendefinert tekst
+    icon?: string | null;  // emoji, kun for egendefinerte typer
+    date: string;
     notifyDaysBefore: number;
     photoUri?: string | null;
     notes?: string | null;
