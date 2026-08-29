@@ -2,6 +2,7 @@ import * as Notifications from "expo-notifications";
 import { Reminder } from "./types";
 import { monthDayBefore } from "./date";
 import { aheadText, dayOfText, NotificationText } from "./notificationText";
+import { strings } from "./i18n";
 
 const CATEGORY = "reminder";
 export const GREET_ACTION = "greet";
@@ -20,18 +21,13 @@ Notifications.setNotificationHandler({
     }),
 });
 
+/** Action buttons carry their own text, so this is re-run when the language changes. */
 export async function registerCategories() {
+    const { greetAction, snoozeAction } = strings().notificationTitles;
+
     await Notifications.setNotificationCategoryAsync(CATEGORY, [
-        {
-            identifier: GREET_ACTION,
-            buttonTitle: "💬 Send greeting",
-            options: { opensAppToForeground: true },
-        },
-        {
-            identifier: "snooze",
-            buttonTitle: "Remind me tonight",
-            options: { opensAppToForeground: false },
-        },
+        { identifier: GREET_ACTION, buttonTitle: greetAction, options: { opensAppToForeground: true } },
+        { identifier: "snooze", buttonTitle: snoozeAction, options: { opensAppToForeground: false } },
     ]);
 }
 
@@ -92,6 +88,8 @@ export async function cancelReminderNotification(id: string) {
     }
 }
 
+/** No-op when notifications are not permitted, so callers don't have to check. */
 export async function rescheduleAll(reminders: Reminder[]) {
+    if (reminders.length === 0 || !(await requestNotificationPermission())) return;
     for (const reminder of reminders) await scheduleForReminder(reminder);
 }

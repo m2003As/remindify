@@ -2,6 +2,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Reminder } from "../lib/types";
 import { daysLabel, daysUntil } from "../lib/date";
+import { useTranslation } from "../lib/i18n";
 import { iconFor, labelFor } from "../lib/reminders";
 import { theme } from "../lib/theme";
 
@@ -38,6 +39,7 @@ export default function ReminderCover({
     height: number;
 }) {
     const router = useRouter();
+    const t = useTranslation();
     const days = daysUntil(reminder.date);
     const soon = days <= SOON_DAYS;
     const v = VARIANTS[variant];
@@ -83,7 +85,7 @@ export default function ReminderCover({
                     }}
                 >
                     <Text style={{ color: theme.bg, fontSize: v.badge, fontWeight: "900", letterSpacing: 0.7 }}>
-                        SOON
+                        {t.date.soon}
                     </Text>
                 </View>
             )}

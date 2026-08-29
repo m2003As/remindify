@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { Reminder } from "../lib/types";
 import { buildGreetings, greetingCount, sendGreeting, SUGGESTIONS_PER_PAGE } from "../lib/greetings";
+import { useTranslation } from "../lib/i18n";
 import { theme } from "../lib/theme";
 
 export default function GreetingSheet({
@@ -13,6 +14,7 @@ export default function GreetingSheet({
     visible: boolean;
     onClose: () => void;
 }) {
+    const t = useTranslation();
     const [offset, setOffset] = useState(0);
 
     useEffect(() => {
@@ -55,10 +57,10 @@ export default function GreetingSheet({
                     />
 
                     <Text style={{ color: theme.text, fontSize: 18, fontWeight: "800" }}>
-                        Send a greeting to {reminder.name}
+                        {t.greetingSheet.title(reminder.name)}
                     </Text>
                     <Text style={{ color: theme.textDim, fontSize: 13, marginTop: 4 }}>
-                        Pick a suggestion — you can edit it before sending
+                        {t.greetingSheet.subtitle}
                     </Text>
 
                     <ScrollView style={{ marginTop: 18 }} showsVerticalScrollIndicator={false}>
@@ -87,7 +89,7 @@ export default function GreetingSheet({
                             style={{ padding: 14, alignItems: "center", marginTop: 4 }}
                         >
                             <Text style={{ color: theme.accent, fontWeight: "700", fontSize: 14 }}>
-                                🔄 Show other suggestions
+                                🔄 {t.greetingSheet.showOthers}
                             </Text>
                         </Pressable>
                     )}

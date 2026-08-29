@@ -5,11 +5,13 @@ import { BirthdayCandidate, candidateToReminder, findBirthdays } from "../../lib
 import { addReminder } from "../../lib/db";
 import { requestNotificationPermission, scheduleForReminder } from "../../lib/notifications";
 import { formatDate } from "../../lib/date";
+import { useTranslation } from "../../lib/i18n";
 import { styles, theme } from "../../lib/theme";
 import { Avatar, Button } from "../../components/ui";
 
 export default function ImportBirthdays() {
     const router = useRouter();
+    const t = useTranslation();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [candidates, setCandidates] = useState<BirthdayCandidate[]>([]);
@@ -21,7 +23,7 @@ export default function ImportBirthdays() {
                 setCandidates(found);
                 setSelected(new Set(found.map((c) => c.key)));
             })
-            .catch((e) => Alert.alert("Could not read contacts", e.message))
+            .catch((e) => Alert.alert(t.importScreen.failedTitle, e.message))
             .finally(() => setLoading(false));
     }, []);
 
@@ -45,14 +47,16 @@ export default function ImportBirthdays() {
         }
 
         setSaving(false);
-        Alert.alert("Done", `${chosen.length} birthdays added.`, [{ text: "OK", onPress: () => router.back() }]);
+        Alert.alert(t.importScreen.doneTitle, t.importScreen.doneBody(chosen.length), [
+            { text: t.common.ok, onPress: () => router.back() },
+        ]);
     }
 
     if (loading) {
         return (
             <View style={[styles.screen, { alignItems: "center", justifyContent: "center" }]}>
                 <ActivityIndicator color={theme.accent} />
-                <Text style={{ color: theme.textDim, marginTop: 14 }}>Reading contacts…</Text>
+                <Text style={{ color: theme.textDim, marginTop: 14 }}>{t.importScreen.reading}</Text>
             </View>
         );
     }
@@ -60,9 +64,7 @@ export default function ImportBirthdays() {
     return (
         <View style={styles.screen}>
             <Text style={{ color: theme.text, fontSize: 16, fontWeight: "600", padding: 20, paddingBottom: 8 }}>
-                {candidates.length === 0
-                    ? "No birthdays found in your contacts"
-                    : `Found ${candidates.length} birthdays`}
+                {candidates.length === 0 ? t.importScreen.foundNone : t.importScreen.found(candidates.length)}
             </Text>
 
             <FlatList
@@ -115,7 +117,7 @@ export default function ImportBirthdays() {
             {candidates.length > 0 && (
                 <View style={{ position: "absolute", left: 20, right: 20, bottom: 34 }}>
                     <Button
-                        label={saving ? "Adding…" : `Add ${selected.size}`}
+                        label={saving ? t.importScreen.adding : t.importScreen.add(selected.size)}
                         onPress={importSelected}
                         disabled={saving || selected.size === 0}
                     />

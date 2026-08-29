@@ -1,4 +1,4 @@
-const LOCALE = "en-GB";
+import { strings } from "./i18n";
 
 /** Parses "YYYY-MM-DD" as a local date rather than UTC. */
 export function parseLocalDate(dateStr: string): Date {
@@ -37,7 +37,7 @@ export function ageTurning(dateStr: string): number {
 }
 
 export function formatDate(dateStr: string): string {
-    return parseLocalDate(dateStr).toLocaleDateString(LOCALE, {
+    return parseLocalDate(dateStr).toLocaleDateString(strings().locale, {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -45,9 +45,25 @@ export function formatDate(dateStr: string): string {
 }
 
 export function daysLabel(days: number): string {
-    if (days === 0) return "Today! 🎉";
-    if (days === 1) return "Tomorrow";
-    return `In ${days} days`;
+    const { date } = strings();
+    if (days === 0) return date.today;
+    if (days === 1) return date.tomorrow;
+    return date.inDays(days);
+}
+
+/** Calendar month (0-11) the date falls in, ignoring the year. */
+export function monthOf(dateStr: string): number {
+    return parseLocalDate(dateStr).getMonth();
+}
+
+export function dayOf(dateStr: string): number {
+    return parseLocalDate(dateStr).getDate();
+}
+
+/** Localised month name, capitalised — some locales lowercase them. */
+export function monthName(month: number): string {
+    const name = new Date(2001, month, 1).toLocaleDateString(strings().locale, { month: "long" });
+    return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 export function monthKey(dateStr: string): string {
@@ -55,10 +71,11 @@ export function monthKey(dateStr: string): string {
     return `${d.getFullYear()}-${d.getMonth()}`;
 }
 
+/** "March", or "March 2027" once the date has rolled into next year. */
 export function monthTitle(dateStr: string): string {
     const d = nextOccurrence(dateStr);
-    const month = d.toLocaleDateString(LOCALE, { month: "long" });
-    return d.getFullYear() === new Date().getFullYear() ? month : `${month} ${d.getFullYear()}`;
+    const name = monthName(d.getMonth());
+    return d.getFullYear() === new Date().getFullYear() ? name : `${name} ${d.getFullYear()}`;
 }
 
 export function isThisMonth(dateStr: string): boolean {

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { initDb } from "../lib/db";
+import { useTranslation } from "../lib/i18n";
 import { GREET_ACTION, registerCategories } from "../lib/notifications";
 import { theme } from "../lib/theme";
 
@@ -11,11 +11,11 @@ const NAVIGATE_DELAY_MS = 300;
 
 export default function RootLayout() {
     const router = useRouter();
+    const t = useTranslation();
     const handledId = useRef<string | null>(null);
     const response = Notifications.useLastNotificationResponse();
 
     useEffect(() => {
-        initDb();
         registerCategories();
     }, []);
 
@@ -49,10 +49,15 @@ export default function RootLayout() {
                 }}
             >
                 <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="reminder/new" options={{ title: "New reminder", presentation: "modal" }} />
-                <Stack.Screen name="reminder/[id]" options={{ title: "" }} />
-                <Stack.Screen name="reminder/import" options={{ title: "Import birthdays", presentation: "modal" }} />
-                <Stack.Screen name="settings" options={{ title: "Settings" }} />
+                <Stack.Screen name="reminder/new" options={{ title: t.form.newTitle, presentation: "modal" }} />
+                <Stack.Screen name="reminder/[id]/index" options={{ title: "" }} />
+                <Stack.Screen name="reminder/[id]/edit" options={{ title: t.form.editTitle, presentation: "modal" }} />
+                <Stack.Screen
+                    name="reminder/import"
+                    options={{ title: t.settings.importBirthdays, presentation: "modal" }}
+                />
+                <Stack.Screen name="month/[month]" options={{ title: "" }} />
+                <Stack.Screen name="settings" options={{ title: t.settings.title }} />
             </Stack>
         </>
     );

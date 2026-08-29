@@ -4,6 +4,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { getReminders, upsertReminder } from "./db";
 import { rescheduleAll } from "./notifications";
 import { parseRelation } from "./reminders";
+import { strings } from "./i18n";
 import { Reminder } from "./types";
 
 const APP_NAME = "riMind";
@@ -21,8 +22,8 @@ export async function exportBackup() {
     const path = `${FileSystem.cacheDirectory}${APP_NAME}-backup-${stamp}.json`;
     await FileSystem.writeAsStringAsync(path, JSON.stringify(payload, null, 2));
 
-    if (!(await Sharing.isAvailableAsync())) throw new Error("Sharing is not available on this device.");
-    await Sharing.shareAsync(path, { mimeType: "application/json", dialogTitle: "Save backup" });
+    if (!(await Sharing.isAvailableAsync())) throw new Error(strings().settings.sharingUnavailable);
+    await Sharing.shareAsync(path, { mimeType: "application/json", dialogTitle: strings().settings.saveDialogTitle });
 }
 
 /** Returns null for rows that are too incomplete to restore. */
@@ -52,7 +53,7 @@ export async function importBackup(): Promise<number> {
 
     const parsed = JSON.parse(await FileSystem.readAsStringAsync(result.assets[0].uri));
     if (!Array.isArray(parsed?.reminders)) {
-        throw new Error(`That file does not look like a ${APP_NAME} backup.`);
+        throw new Error(strings().settings.notABackup);
     }
 
     const imported = parsed.reminders.map(toReminder).filter((r: Reminder | null): r is Reminder => r !== null);

@@ -4,10 +4,10 @@ import { Reminder } from "./types";
 // The file name predates the riMind rename; keeping it preserves existing installs.
 const db = SQLite.openDatabaseSync("remindify.db");
 
-const COLUMNS = "id, name, type, icon, relation, date, notifyDaysBefore, photoUri, notes";
-const PLACEHOLDERS = COLUMNS.split(", ").map(() => "?").join(", ");
+const COLUMNS = ["id", "name", "type", "icon", "relation", "date", "notifyDaysBefore", "photoUri", "notes"];
+const PLACEHOLDERS = COLUMNS.map(() => "?").join(", ");
 
-/** Ordered schema steps. The index in this array is the resulting user_version. */
+/** Ordered schema steps. A step's index in this array is the user_version it produces. */
 const MIGRATIONS: string[][] = [
     ["ALTER TABLE reminders ADD COLUMN icon TEXT;"],
     ["ALTER TABLE reminders ADD COLUMN relation TEXT;"],
@@ -18,9 +18,10 @@ const MIGRATIONS: string[][] = [
         "UPDATE reminders SET relation = 'colleague' WHERE relation = 'kollega';",
         "UPDATE reminders SET relation = 'other' WHERE relation = 'annet';",
     ],
+    ["CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL);"],
 ];
 
-export function initDb() {
+function migrate() {
     db.execSync(`
         CREATE TABLE IF NOT EXISTS reminders (
             id TEXT PRIMARY KEY NOT NULL,
@@ -41,6 +42,11 @@ export function initDb() {
     });
 }
 
+// Runs once, when this module is first imported — before any screen can query.
+migrate();
+
+/* ---------- Reminders ---------- */
+
 function values(r: Reminder) {
     return [
         r.id, r.name, r.type, r.icon ?? null, r.relation ?? null,
@@ -57,20 +63,30 @@ export function getReminderById(id: string): Reminder | null {
 }
 
 export function addReminder(r: Reminder) {
-    db.runSync(`INSERT INTO reminders (${COLUMNS}) VALUES (${PLACEHOLDERS});`, values(r));
+    db.runSync(`INSERT INTO reminders (${COLUMNS.join(", ")}) VALUES (${PLACEHOLDERS});`, values(r));
 }
 
 /** Insert, or overwrite an existing row with the same id. */
 export function upsertReminder(r: Reminder) {
-    db.runSync(`INSERT OR REPLACE INTO reminders (${COLUMNS}) VALUES (${PLACEHOLDERS});`, values(r));
+    db.runSync(`INSERT OR REPLACE INTO reminders (${COLUMNS.join(", ")}) VALUES (${PLACEHOLDERS});`, values(r));
 }
 
 export function updateReminder(r: Reminder) {
     const [id, ...rest] = values(r);
-    const assignments = COLUMNS.split(", ").slice(1).map((c) => `${c} = ?`).join(", ");
+    const assignments = COLUMNS.slice(1).map((c) => `${c} = ?`).join(", ");
     db.runSync(`UPDATE reminders SET ${assignments} WHERE id = ?;`, [...rest, id]);
 }
 
 export function deleteReminder(id: string) {
     db.runSync("DELETE FROM reminders WHERE id = ?;", [id]);
+}
+
+/* ---------- Settings ---------- */
+
+export function getSetting(key: string): string | null {
+    return db.getFirstSync<{ value: string }>("SELECT value FROM settings WHERE key = ?;", [key])?.value ?? null;
+}
+
+export function setSetting(key: string, value: string) {
+    db.runSync("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?);", [key, value]);
 }

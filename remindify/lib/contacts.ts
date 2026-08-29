@@ -2,6 +2,7 @@ import * as Contacts from "expo-contacts/legacy";
 import { Reminder } from "./types";
 import { getReminders } from "./db";
 import { savePhoto } from "./photos";
+import { strings } from "./i18n";
 
 const DEFAULT_YEAR = 2000;
 const DEFAULT_NOTIFY_DAYS_BEFORE = 3;
@@ -16,7 +17,7 @@ export type BirthdayCandidate = {
 /** Contacts with a birthday that is not already saved, sorted by name. */
 export async function findBirthdays(): Promise<BirthdayCandidate[]> {
     const { status } = await Contacts.requestPermissionsAsync();
-    if (status !== "granted") throw new Error("No access to contacts.");
+    if (status !== "granted") throw new Error(strings().importScreen.noAccess);
 
     const { data } = await Contacts.getContactsAsync({
         fields: [Contacts.Fields.Name, Contacts.Fields.Birthday, Contacts.Fields.Image],
@@ -45,7 +46,7 @@ export async function findBirthdays(): Promise<BirthdayCandidate[]> {
         });
     }
 
-    return candidates.sort((a, b) => a.name.localeCompare(b.name));
+    return candidates.sort((a, b) => a.name.localeCompare(b.name, strings().locale));
 }
 
 export async function candidateToReminder(c: BirthdayCandidate, index: number): Promise<Reminder> {
