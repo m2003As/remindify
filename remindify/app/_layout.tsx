@@ -6,6 +6,8 @@ import { useTranslation } from "../lib/i18n";
 import { GREET_ACTION, registerCategories } from "../lib/notifications";
 import { theme } from "../lib/theme";
 
+const APP_NAME = "riMind";
+
 /** Gives the router a moment to mount before we navigate from a cold start. */
 const NAVIGATE_DELAY_MS = 300;
 
@@ -46,9 +48,11 @@ export default function RootLayout() {
                     headerTitleStyle: { color: theme.text, fontWeight: "700" },
                     headerShadowVisible: false,
                     contentStyle: { backgroundColor: theme.bg },
+                    // Show just the chevron; otherwise iOS labels it with the previous route name.
+                    headerBackButtonDisplayMode: "minimal",
                 }}
             >
-                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="index" options={{ headerShown: false, title: APP_NAME }} />
                 <Stack.Screen name="reminder/new" options={{ title: t.form.newTitle, presentation: "modal" }} />
                 <Stack.Screen name="reminder/[id]/index" options={{ title: "" }} />
                 <Stack.Screen name="reminder/[id]/edit" options={{ title: t.form.editTitle, presentation: "modal" }} />

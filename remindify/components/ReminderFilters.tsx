@@ -38,7 +38,6 @@ export default function ReminderFilters({
             </View>
 
             <ChipRow
-                scroll
                 options={typeFilterChoices()}
                 value={value.type ?? "all"}
                 onChange={(type: TypeFilter) => patch({ type })}

@@ -1,16 +1,5 @@
 import { ReactNode } from "react";
-import {
-    Image,
-    Pressable,
-    ScrollView,
-    StyleProp,
-    Text,
-    TextInput,
-    TextInputProps,
-    TextStyle,
-    View,
-    ViewStyle,
-} from "react-native";
+import { Image, Pressable, StyleProp, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from "react-native";
 import { Choice } from "../lib/types";
 import { styles, theme } from "../lib/theme";
 
@@ -57,24 +46,21 @@ export function Chip({
     );
 }
 
-/** A row of chips where exactly one option is selected. Wraps, or scrolls sideways. */
+/** A wrapping row of chips where exactly one option is selected. Nothing is ever cut off. */
 export function ChipRow<T extends string | number>({
     options,
     value,
     onChange,
     extra,
-    scroll,
 }: {
     options: Choice<T>[];
     value: T | null | undefined;
     onChange: (value: T) => void;
     /** Rendered after the options, e.g. an "add your own" chip. */
     extra?: ReactNode;
-    /** Keep every chip on one line and scroll instead of wrapping. */
-    scroll?: boolean;
 }) {
-    const chips = (
-        <>
+    return (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {options.map((o) => (
                 <Chip
                     key={String(o.value)}
@@ -85,15 +71,7 @@ export function ChipRow<T extends string | number>({
                 />
             ))}
             {extra}
-        </>
-    );
-
-    return scroll ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-            {chips}
-        </ScrollView>
-    ) : (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{chips}</View>
+        </View>
     );
 }
 
