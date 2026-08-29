@@ -50,3 +50,11 @@ export function updateReminder(r: Reminder) {
 export function deleteReminder(id: string) {
     db.runSync("DELETE FROM reminders WHERE id = ?;", [id]);
 }
+
+export function upsertReminder(r: Reminder) {
+    db.runSync(
+        `INSERT OR REPLACE INTO reminders (id, name, type, icon, date, notifyDaysBefore, photoUri, notes)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        [r.id, r.name, r.type, r.icon ?? null, r.date, r.notifyDaysBefore, r.photoUri ?? null, r.notes ?? null]
+    );
+}

@@ -8,8 +8,9 @@ import * as FileSystem from "expo-file-system/legacy";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { addReminder } from "../lib/db";
-import { requestNotificationPermission, scheduleYearlyReminder } from "../lib/notifications";
+import { requestNotificationPermission, scheduleForReminder } from "../lib/notifications";
 import { Reminder } from "../lib/types";
+import NotifyPills from "../components/NotifyPills";
 import {
     formatDateDisplay, toLocalDateString,
     PRESET_TYPES, EMOJI_CHOICES,
@@ -25,6 +26,8 @@ export default function AddReminder() {
     const [date, setDate] = useState(new Date(2000, 0, 1));
     const [showPicker, setShowPicker] = useState(false);
     const [photoUri, setPhotoUri] = useState<string | null>(null);
+    const [notifyDaysBefore, setNotifyDaysBefore] = useState(3);
+    const [notes, setNotes] = useState("");
 
     async function persistPhoto(tempUri: string) {
         const filename = tempUri.split("/").pop();
@@ -63,13 +66,14 @@ export default function AddReminder() {
             type: customMode ? customLabel.trim() : type,
             icon: customMode ? icon : null,
             date: toLocalDateString(date),
-            notifyDaysBefore: 0,
+            notifyDaysBefore,
             photoUri,
+            notes: notes.trim() || null,
         };
         addReminder(reminder);
 
         const granted = await requestNotificationPermission();
-        if (granted) await scheduleYearlyReminder(reminder);
+        if (granted) await scheduleForReminder(reminder);
 
         router.back();
     }
@@ -189,6 +193,23 @@ export default function AddReminder() {
             <Pressable onPress={save} style={styles.saveButton}>
                 <Text style={styles.saveButtonText}>Lagre minne</Text>
             </Pressable>
+
+            <Text style={styles.label}>Varsle meg</Text>
+            <View style={{ marginBottom: 20 }}>
+                <NotifyPills value={notifyDaysBefore} onChange={setNotifyDaysBefore} />
+            </View>
+
+            <Text style={styles.label}>Gaveideer (valgfritt)</Text>
+            <TextInput
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+                placeholder="Ønsker seg…"
+                placeholderTextColor="#5A5A66"
+                style={[styles.input, { minHeight: 90, textAlignVertical: "top" }]}
+            />
+
+
         </ScrollView>
     );
 }

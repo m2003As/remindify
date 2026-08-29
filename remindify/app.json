@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
+        "NSContactsUsageDescription": "riMind leser bursdager fra kontaktene dine slik at du slipper å skrive dem inn manuelt.",
         "NSCameraUsageDescription": "Remindify trenger tilgang til kamera for å ta bilder til minnene dine.",
         "NSPhotoLibraryUsageDescription": "Remindify trenger tilgang til bildealbumet ditt for å legge til minner.",
         "ITSAppUsesNonExemptEncryption": false
@@ -42,7 +43,8 @@
         }
       ],
       "expo-sqlite",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true
