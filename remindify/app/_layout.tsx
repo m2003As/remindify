@@ -1,28 +1,40 @@
-import { Stack, useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
 import * as Notifications from "expo-notifications";
+import { Stack, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { initDb } from "../lib/db";
+import { GREET_ACTION, registerCategories } from "../lib/notifications";
 import { theme } from "../lib/theme";
+
+/** Gives the router a moment to mount before we navigate from a cold start. */
+const NAVIGATE_DELAY_MS = 300;
 
 export default function RootLayout() {
     const router = useRouter();
-    const handled = useRef<string | null>(null);
-    const lastResponse = Notifications.useLastNotificationResponse();
-
-    useEffect(() => { initDb(); }, []);
+    const handledId = useRef<string | null>(null);
+    const response = Notifications.useLastNotificationResponse();
 
     useEffect(() => {
-        if (!lastResponse) return;
-        const req = lastResponse.notification.request;
-        if (handled.current === req.identifier) return;
+        initDb();
+        registerCategories();
+    }, []);
 
-        const reminderId = req.content.data?.reminderId as string | undefined;
-        if (reminderId) {
-            handled.current = req.identifier;
-            setTimeout(() => router.push(`/detail/${reminderId}`), 300);
-        }
-    }, [lastResponse]);
+    useEffect(() => {
+        if (!response) return;
+
+        const request = response.notification.request;
+        const reminderId = request.content.data?.reminderId as string | undefined;
+        if (!reminderId || handledId.current === request.identifier) return;
+
+        handledId.current = request.identifier;
+        const greet = response.actionIdentifier === GREET_ACTION ? "1" : undefined;
+        const timer = setTimeout(
+            () => router.push({ pathname: "/reminder/[id]", params: { id: reminderId, greet } }),
+            NAVIGATE_DELAY_MS,
+        );
+
+        return () => clearTimeout(timer);
+    }, [response]);
 
     return (
         <>
@@ -37,10 +49,10 @@ export default function RootLayout() {
                 }}
             >
                 <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="add" options={{ title: "Nytt minne", presentation: "modal" }} />
-                <Stack.Screen name="detail/[id]" options={{ title: "" }} />
-                <Stack.Screen name="settings" options={{ title: "Innstillinger" }} />
-                <Stack.Screen name="import-contacts" options={{ title: "Importer bursdager", presentation: "modal" }} />
+                <Stack.Screen name="reminder/new" options={{ title: "New reminder", presentation: "modal" }} />
+                <Stack.Screen name="reminder/[id]" options={{ title: "" }} />
+                <Stack.Screen name="reminder/import" options={{ title: "Import birthdays", presentation: "modal" }} />
+                <Stack.Screen name="settings" options={{ title: "Settings" }} />
             </Stack>
         </>
     );

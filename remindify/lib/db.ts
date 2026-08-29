@@ -1,26 +1,51 @@
 import * as SQLite from "expo-sqlite";
 import { Reminder } from "./types";
 
+// The file name predates the riMind rename; keeping it preserves existing installs.
 const db = SQLite.openDatabaseSync("remindify.db");
+
+const COLUMNS = "id, name, type, icon, relation, date, notifyDaysBefore, photoUri, notes";
+const PLACEHOLDERS = COLUMNS.split(", ").map(() => "?").join(", ");
+
+/** Ordered schema steps. The index in this array is the resulting user_version. */
+const MIGRATIONS: string[][] = [
+    ["ALTER TABLE reminders ADD COLUMN icon TEXT;"],
+    ["ALTER TABLE reminders ADD COLUMN relation TEXT;"],
+    [
+        // Relation values used to be Norwegian.
+        "UPDATE reminders SET relation = 'family' WHERE relation = 'familie';",
+        "UPDATE reminders SET relation = 'friend' WHERE relation = 'venn';",
+        "UPDATE reminders SET relation = 'colleague' WHERE relation = 'kollega';",
+        "UPDATE reminders SET relation = 'other' WHERE relation = 'annet';",
+    ],
+];
 
 export function initDb() {
     db.execSync(`
-    CREATE TABLE IF NOT EXISTS reminders (
-      id TEXT PRIMARY KEY NOT NULL,
-      name TEXT NOT NULL,
-      type TEXT NOT NULL,
-      date TEXT NOT NULL,
-      notifyDaysBefore INTEGER NOT NULL DEFAULT 0,
-      photoUri TEXT,
-      notes TEXT
-    );
-  `);
+        CREATE TABLE IF NOT EXISTS reminders (
+            id TEXT PRIMARY KEY NOT NULL,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            date TEXT NOT NULL,
+            notifyDaysBefore INTEGER NOT NULL DEFAULT 0,
+            photoUri TEXT,
+            notes TEXT
+        );
+    `);
 
-    const row = db.getFirstSync<{ user_version: number }>("PRAGMA user_version;");
-    if ((row?.user_version ?? 0) < 1) {
-        db.execSync("ALTER TABLE reminders ADD COLUMN icon TEXT;");
-        db.execSync("PRAGMA user_version = 1;");
-    }
+    const version = db.getFirstSync<{ user_version: number }>("PRAGMA user_version;")?.user_version ?? 0;
+
+    MIGRATIONS.slice(version).forEach((statements, i) => {
+        statements.forEach((sql) => db.execSync(sql));
+        db.execSync(`PRAGMA user_version = ${version + i + 1};`);
+    });
+}
+
+function values(r: Reminder) {
+    return [
+        r.id, r.name, r.type, r.icon ?? null, r.relation ?? null,
+        r.date, r.notifyDaysBefore, r.photoUri ?? null, r.notes ?? null,
+    ];
 }
 
 export function getReminders(): Reminder[] {
@@ -32,29 +57,20 @@ export function getReminderById(id: string): Reminder | null {
 }
 
 export function addReminder(r: Reminder) {
-    db.runSync(
-        `INSERT INTO reminders (id, name, type, icon, date, notifyDaysBefore, photoUri, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-        [r.id, r.name, r.type, r.icon ?? null, r.date, r.notifyDaysBefore, r.photoUri ?? null, r.notes ?? null]
-    );
+    db.runSync(`INSERT INTO reminders (${COLUMNS}) VALUES (${PLACEHOLDERS});`, values(r));
+}
+
+/** Insert, or overwrite an existing row with the same id. */
+export function upsertReminder(r: Reminder) {
+    db.runSync(`INSERT OR REPLACE INTO reminders (${COLUMNS}) VALUES (${PLACEHOLDERS});`, values(r));
 }
 
 export function updateReminder(r: Reminder) {
-    db.runSync(
-        `UPDATE reminders SET name=?, type=?, icon=?, date=?, notifyDaysBefore=?, photoUri=?, notes=?
-     WHERE id=?;`,
-        [r.name, r.type, r.icon ?? null, r.date, r.notifyDaysBefore, r.photoUri ?? null, r.notes ?? null, r.id]
-    );
+    const [id, ...rest] = values(r);
+    const assignments = COLUMNS.split(", ").slice(1).map((c) => `${c} = ?`).join(", ");
+    db.runSync(`UPDATE reminders SET ${assignments} WHERE id = ?;`, [...rest, id]);
 }
 
 export function deleteReminder(id: string) {
     db.runSync("DELETE FROM reminders WHERE id = ?;", [id]);
-}
-
-export function upsertReminder(r: Reminder) {
-    db.runSync(
-        `INSERT OR REPLACE INTO reminders (id, name, type, icon, date, notifyDaysBefore, photoUri, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-        [r.id, r.name, r.type, r.icon ?? null, r.date, r.notifyDaysBefore, r.photoUri ?? null, r.notes ?? null]
-    );
 }

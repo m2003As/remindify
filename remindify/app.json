@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "remindify",
+    "name": "riMind",
     "slug": "remindify",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,10 +10,13 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSContactsUsageDescription": "riMind leser bursdager fra kontaktene dine slik at du slipper å skrive dem inn manuelt.",
-        "NSCameraUsageDescription": "Remindify trenger tilgang til kamera for å ta bilder til minnene dine.",
-        "NSPhotoLibraryUsageDescription": "Remindify trenger tilgang til bildealbumet ditt for å legge til minner.",
+        "NSContactsUsageDescription": "riMind reads birthdays from your contacts so you do not have to type them in by hand.",
+        "NSCameraUsageDescription": "riMind uses the camera to take photos for your reminders.",
+        "NSPhotoLibraryUsageDescription": "riMind uses your photo library to add photos to your reminders.",
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.usernotifications.time-sensitive": true
       },
       "bundleIdentifier": "com.maxuia.remindify"
     },

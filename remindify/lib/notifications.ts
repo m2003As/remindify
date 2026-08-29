@@ -1,6 +1,14 @@
 import * as Notifications from "expo-notifications";
 import { Reminder } from "./types";
-import { notifyMonthDay, iconFor, labelFor } from "./dateUtils";
+import { monthDayBefore } from "./date";
+import { aheadText, dayOfText, NotificationText } from "./notificationText";
+
+const CATEGORY = "reminder";
+export const GREET_ACTION = "greet";
+
+/** Notifications fire at 09:00 on the day, and at 18:00 for the heads-up. */
+const DAY_OF_HOUR = 9;
+const AHEAD_HOUR = 18;
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -12,60 +20,78 @@ Notifications.setNotificationHandler({
     }),
 });
 
-export async function requestNotificationPermission() {
+export async function registerCategories() {
+    await Notifications.setNotificationCategoryAsync(CATEGORY, [
+        {
+            identifier: GREET_ACTION,
+            buttonTitle: "💬 Send greeting",
+            options: { opensAppToForeground: true },
+        },
+        {
+            identifier: "snooze",
+            buttonTitle: "Remind me tonight",
+            options: { opensAppToForeground: false },
+        },
+    ]);
+}
+
+export async function requestNotificationPermission(): Promise<boolean> {
     const { status } = await Notifications.requestPermissionsAsync();
     return status === "granted";
 }
 
-function dayOfBody(r: Reminder): string {
-    if (r.type === "birthday") return "Har bursdag i dag! 🎂";
-    if (r.type === "anniversary") return "Jubileum i dag! 💍";
-    if (r.type === "custom") return "En spesiell dag i dag! ⭐";
-    return `${labelFor(r)} i dag! ${iconFor(r)}`;
-}
+const aheadId = (id: string) => `${id}-pre`;
 
-export async function scheduleForReminder(reminder: Reminder) {
-    await cancelReminderNotification(reminder.id);
-
-    const icon = iconFor(reminder);
-    const dayOf = notifyMonthDay(reminder.date, 0);
-
-    await Notifications.scheduleNotificationAsync({
-        identifier: reminder.id,
+function schedule(
+    identifier: string,
+    reminderId: string,
+    text: NotificationText,
+    when: { month: number; day: number; hour: number },
+    timeSensitive = false,
+) {
+    return Notifications.scheduleNotificationAsync({
+        identifier,
         content: {
-            title: `${icon} ${reminder.name}`,
-            body: dayOfBody(reminder),
-            data: { reminderId: reminder.id },
+            ...text,
+            categoryIdentifier: CATEGORY,
+            sound: true,
+            data: { reminderId },
+            ...(timeSensitive ? { interruptionLevel: "timeSensitive" as const } : {}),
         },
         trigger: {
             type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-            month: dayOf.month, day: dayOf.day, hour: 9, minute: 0, repeats: true,
+            month: when.month,
+            day: when.day,
+            hour: when.hour,
+            minute: 0,
+            repeats: true,
         },
     });
+}
 
-    if (reminder.notifyDaysBefore > 0) {
-        const pre = notifyMonthDay(reminder.date, reminder.notifyDaysBefore);
-        const n = reminder.notifyDaysBefore;
-        await Notifications.scheduleNotificationAsync({
-            identifier: `${reminder.id}-pre`,
-            content: {
-                title: `${icon} ${reminder.name}`,
-                body: `${labelFor(reminder)} om ${n} ${n === 1 ? "dag" : "dager"} — tid til å ordne noe?`,
-                data: { reminderId: reminder.id },
-            },
-            trigger: {
-                type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-                month: pre.month, day: pre.day, hour: 18, minute: 0, repeats: true,
-            },
+/** Replaces any notifications already scheduled for this reminder. */
+export async function scheduleForReminder(reminder: Reminder) {
+    await cancelReminderNotification(reminder.id);
+
+    const dayOf = monthDayBefore(reminder.date, 0);
+    await schedule(reminder.id, reminder.id, dayOfText(reminder), { ...dayOf, hour: DAY_OF_HOUR }, true);
+
+    const daysBefore = reminder.notifyDaysBefore;
+    if (daysBefore > 0) {
+        const ahead = monthDayBefore(reminder.date, daysBefore);
+        await schedule(aheadId(reminder.id), reminder.id, aheadText(reminder, daysBefore), {
+            ...ahead,
+            hour: AHEAD_HOUR,
         });
     }
 }
 
 export async function cancelReminderNotification(id: string) {
-    await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
-    await Notifications.cancelScheduledNotificationAsync(`${id}-pre`).catch(() => {});
+    for (const identifier of [id, aheadId(id)]) {
+        await Notifications.cancelScheduledNotificationAsync(identifier).catch(() => {});
+    }
 }
 
 export async function rescheduleAll(reminders: Reminder[]) {
-    for (const r of reminders) await scheduleForReminder(r);
+    for (const reminder of reminders) await scheduleForReminder(reminder);
 }
