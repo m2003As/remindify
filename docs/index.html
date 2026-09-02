@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>riMind — Support & Privacy</title>
+<style>
+  :root {
+    --bg: #FBF9F6;
+    --ink: #2B2620;
+    --ink-soft: #5C5548;
+    --line: #E4DED2;
+    --accent: #B5542B;
+    --accent-soft: #F1E3D8;
+    --card: #FFFFFF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1C1915;
+      --ink: #F2EEE6;
+      --ink-soft: #B8AF9F;
+      --line: #38332B;
+      --accent: #E08A5B;
+      --accent-soft: #2E271E;
+      --card: #232019;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1C1915;
+    --ink: #F2EEE6;
+    --ink-soft: #B8AF9F;
+    --line: #38332B;
+    --accent: #E08A5B;
+    --accent-soft: #2E271E;
+    --card: #232019;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  body {
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif;
+    line-height: 1.65;
+    font-size: 17px;
+  }
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+  header {
+    margin-bottom: 56px;
+  }
+  .mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 34px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  .sub {
+    color: var(--ink-soft);
+    font-size: 17px;
+    margin: 0;
+  }
+  nav {
+    display: flex;
+    gap: 24px;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  nav a {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  nav a:hover { text-decoration: underline; }
+
+  section { margin-bottom: 56px; }
+  section h2 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    margin: 0 0 20px;
+    scroll-margin-top: 24px;
+  }
+  p { margin: 0 0 16px; color: var(--ink); max-width: 62ch; }
+  p.soft { color: var(--ink-soft); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 28px;
+  }
+
+  .contact-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .contact-row a.email {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1.5px solid var(--accent);
+    padding-bottom: 2px;
+  }
+  .copy-btn {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    cursor: pointer;
+  }
+  .copy-btn:hover { opacity: 0.85; }
+
+  .perm-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+  }
+  .perm-list li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .perm-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .perm-list strong {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-weight: 650;
+    font-size: 15.5px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .perm-list span {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+  }
+
+  .local-note {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 20px 22px;
+    background: var(--accent-soft);
+    border-radius: 12px;
+  }
+  .local-note .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+  .local-note p {
+    margin: 0;
+    color: var(--ink);
+    font-size: 16px;
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+    color: var(--ink-soft);
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 44px 20px 72px; }
+    h1 { font-size: 28px; }
+    .contact-row { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="mark">🎂</div>
+    <h1>riMind</h1>
+    <p class="sub">Support and privacy information</p>
+    <nav>
+      <a href="#support">Support</a>
+      <a href="#privacy">Privacy Policy</a>
+    </nav>
+  </header>
+
+  <section id="support">
+    <h2>Support</h2>
+    <p>Have a question, found a bug, or want to suggest a feature? Reach out any time — we read every message.</p>
+    <div class="card">
+      <div class="contact-row">
+        <a class="email" href="mailto:mdouche1233@gmail.com">mdouche1233@gmail.com</a>
+        <button class="copy-btn" onclick="copyEmail(this)">Copy email</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="privacy">
+    <h2>Privacy Policy</h2>
+    <p class="soft">Last updated September 2, 2026</p>
+
+    <div class="local-note">
+      <div class="dot"></div>
+      <p><strong>riMind does not collect, transmit, or store any of your data on our servers.</strong> Everything you add to the app — dates, photos, gift ideas, contacts — is saved directly on your own device. We have no access to it, and it is never sent anywhere.</p>
+    </div>
+
+    <p style="margin-top: 28px;">To provide its features, riMind asks for permission to access a few things on your device. Here's exactly what each one is for:</p>
+
+    <div class="card">
+      <ul class="perm-list">
+        <li>
+          <div class="perm-icon">◐</div>
+          <div>
+            <strong>Contacts</strong>
+            <span>Used only if you choose to import birthdays or dates from your contacts. This data is saved on your device and is never uploaded or shared.</span>
+          </div>
+        </li>
+        <li>
+          <div class="perm-icon">▢</div>
+          <div>
+            <strong>Camera</strong>
+            <span>Used only when you choose to take a photo to attach to a date, so it appears alongside that person's reminder.</span>
+          </div>
+        </li>
+        <li>
+          <div class="perm-icon">▨</div>
+          <div>
+            <strong>Photo Library</strong>
+            <span>Used only when you choose to select an existing photo to attach to a date. riMind does not scan or access any photos beyond the one you pick.</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <p style="margin-top: 28px;">riMind uses your device's notification system to remind you of upcoming dates. These reminders are scheduled and delivered entirely on your device.</p>
+
+    <p>Because everything is saved only on your device, deleting the app permanently removes all of its data. We have no copy to delete, because we never had one.</p>
+
+    <p>If this policy changes in the future, the update will be reflected here with a new "last updated" date. If you have questions about your privacy, contact us at <a href="mailto:mdouche1233@gmail.com" style="color: var(--accent);">mdouche1233@gmail.com</a>.</p>
+  </section>
+
+  <footer>
+    riMind
+  </footer>
+
+</div>
+
+<script>
+function copyEmail(btn) {
+  const email = "mdouche1233@gmail.com";
+  const original = btn.textContent;
+  navigator.clipboard.writeText(email).then(() => {
+    btn.textContent = "Copied!";
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }).catch(() => {
+    btn.textContent = "Copy failed";
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  });
+}
+</script>
+
+</body>
+</html>
